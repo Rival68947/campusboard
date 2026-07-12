@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient'
 export function useRealtimeNotices(setNotices) {
   useEffect(() => {
     const channel = supabase
-      .channel('notices-feed')
+      .channel('notices-feed-' + Math.random())
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notices' },

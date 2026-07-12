@@ -11,7 +11,6 @@ export default function Dashboard() {
 
   // keeps `notices` state live-synced with DB changes from any user
   useRealtimeNotices(setNotices)
-
   const handleDelete = async (id) => {
     await deleteNotice(id)
     // no need to manually update state here - the realtime DELETE
