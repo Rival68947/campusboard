@@ -1,173 +1,314 @@
-# CampusBoard — Minimal Supabase + React Learning Project
+# CampusBoard
 
-A tiny notice board app covering: Auth, Protected Routes, Profile (with Storage
-avatar upload), Database CRUD, and Realtime (feed + notifications).
+A React + Vite + Supabase based Campus Notice Board application.
 
-## 1. Create a Supabase project
-Go to supabase.com → New Project → copy the **Project URL** and **anon public
-key** from Settings → API.
+This project demonstrates:
 
-## 2. Set environment variables
-Copy `.env.example` to `.env` and fill in your values:
+- User Authentication
+- Profile Management
+- Notice Board CRUD
+- Realtime Updates
+- Notifications
+- Supabase Database Integration
+- Supabase Storage
 
-```
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key
-```
+---
 
-## 3. Run this SQL in the Supabase SQL Editor
+# Prerequisites
 
-```sql
--- PROFILES
-create table profiles (
-  id uuid references auth.users on delete cascade primary key,
-  full_name text,
-  avatar_url text,
-  bio text,
-  updated_at timestamp default now()
-);
+Before running this project, make sure you have:
 
-alter table profiles enable row level security;
+- Node.js (v18 or later recommended)
+- npm
+- Git
+- A Supabase account
 
-create policy "Profiles are viewable by everyone"
-  on profiles for select using (true);
+---
 
-create policy "Users can insert their own profile"
-  on profiles for insert with check (auth.uid() = id);
+# Installation
 
-create policy "Users can update their own profile"
-  on profiles for update using (auth.uid() = id);
+## Clone the repository
 
-
--- NOTICES
-create table notices (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users on delete cascade,
-  title text not null,
-  content text,
-  created_at timestamp default now()
-);
-
-alter table notices enable row level security;
-
-create policy "Notices are viewable by everyone"
-  on notices for select using (true);
-
-create policy "Users can insert their own notices"
-  on notices for insert with check (auth.uid() = user_id);
-
-create policy "Users can delete their own notices"
-  on notices for delete using (auth.uid() = user_id);
-
-create policy "Users can update their own notices"
-  on notices for update using (auth.uid() = user_id);
-
-
--- NOTIFICATIONS
-create table notifications (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users on delete cascade,
-  message text not null,
-  is_read boolean default false,
-  created_at timestamp default now()
-);
-
-alter table notifications enable row level security;
-
-create policy "Users can view their own notifications"
-  on notifications for select using (auth.uid() = user_id);
-
-create policy "Users can insert their own notifications"
-  on notifications for insert with check (auth.uid() = user_id);
-
-create policy "Users can update their own notifications"
-  on notifications for update using (auth.uid() = user_id);
-
-
--- Notify to all users when any user updates the Notice 
-
-create or replace function notify_all_users_on_new_notice()
-returns trigger
-language plpgsql
-security definer
-as $$
-begin
-  insert into notifications (user_id, message)
-  select id, 'New notice posted: "' || new.title || '"'
-  from auth.users
-  where id != new.user_id;
-  return new;
-end;
-$$;
-
-create trigger trg_notify_all_users_on_new_notice
-after insert on notices
-for each row
-execute function notify_all_users_on_new_notice();
+```bash
+git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY.git
+cd CampusBoard
 ```
 
-## 4. Enable Realtime
-In Supabase Dashboard → **Database → Replication**, turn on replication for
-the `notices` and `notifications` tables (toggle them on in the list of
-tables under "supabase_realtime" publication).
-
-## 5. Create the Storage bucket
-Dashboard → **Storage** → New bucket → name it `avatars` → mark **Public**.
-
-Then add these storage policies (Storage → avatars → Policies):
-
-```sql
-create policy "Avatar images are publicly accessible"
-  on storage.objects for select using (bucket_id = 'avatars');
-
-create policy "Users can upload their own avatar"
-  on storage.objects for insert with check (
-    bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-create policy "Users can update their own avatar"
-  on storage.objects for update using (
-    bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]
-  );
-```
-
-(This works because the app uploads to a path like `{userId}/filename.jpg` —
-the first folder segment must match the logged-in user's id.)
-
-## 6. Email confirmation setting (optional but recommended for testing)
-Dashboard → **Authentication → Providers → Email** → you can toggle
-"Confirm email" OFF while developing, so signup logs you in immediately
-without needing to click a confirmation link.
-
-## 7. Install & run
+## Install dependencies
 
 ```bash
 npm install
+```
+
+---
+
+# Supabase Setup
+
+## Step 1 - Create a Supabase Project
+
+Go to:
+
+https://supabase.com
+
+Create a new project.
+
+Wait until the database finishes provisioning.
+
+---
+
+## Step 2 - Get API Credentials
+
+Copy:
+
+- Project URL
+- Publishable Key
+
+(In older Supabase tutorials this may be called the Anon Key.)
+
+---
+
+## Step 3 - Create a .env File
+
+Create a file named
+
+```
+.env
+```
+
+in the project root.
+
+Add:
+
+```env
+VITE_SUPABASE_URL=YOUR_PROJECT_URL
+VITE_SUPABASE_ANON_KEY=YOUR_PUBLISHABLE_KEY
+```
+
+Example:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Restart the development server after creating the `.env` file.
+
+---
+
+# Database Setup
+
+Open:
+
+Supabase Dashboard
+
+→ SQL Editor
+
+→ New Query
+
+Copy the SQL provided below (or in this README if included).
+
+Run the complete SQL script.
+
+After running successfully, the following tables should exist:
+
+- profiles
+- notices
+- notifications
+
+---
+
+# Storage Setup (Optional)
+
+If avatar uploads are required:
+
+Go to:
+
+Storage
+
+Create a bucket named:
+
+```
+avatars
+```
+
+Make it Public.
+
+Run the Storage Policies provided below.
+
+---
+
+# Start the Project
+
+```bash
 npm run dev
 ```
 
-Visit http://localhost:5173 — sign up, log in, post a notice, open a second
-browser (or incognito) tab logged in as a different user, and watch the
-notice board update live. Post a notice and check the bell icon for the
-live notification.
+Open
 
-## What each topic maps to
-| Feature | File(s) |
-|---|---|
-| Auth (signup/login/logout/session) | `context/AuthContext.jsx`, `pages/Login.jsx`, `pages/Signup.jsx` |
-| Protected routes | `routes/ProtectedRoute.jsx` |
-| Profile + metadata | `pages/Profile.jsx` |
-| Storage / avatar upload | `components/AvatarUpload.jsx` |
-| Database CRUD | `hooks/useNotices.js`, `components/NoticeForm.jsx`, `components/NoticeCard.jsx` |
-| Realtime feed | `hooks/useRealtimeNotices.js` |
-| Live notifications | `hooks/useNotifications.js`, `components/NotificationBell.jsx` |
+```
+http://localhost:5173
+```
 
-## Notes / simplifications made on purpose
-- The notification created in `NoticeForm.jsx` is a **self-notification**
-  (confirming your own post went live) just to demonstrate the insert →
-  realtime → bell pipeline. In a real app you'd insert one notification row
-  per relevant recipient (e.g. followers, classmates) instead.
-- No comments, likes, or edit-notice UI — kept to one CRUD entity so the
-  core Supabase concepts stay visible and easy to trace.
-- CSS is intentionally bare-bones right now (see `src/index.css`) — styling
-  can be layered on top once the wiring is working.
+---
+
+# Features
+
+- User Signup/Login
+- Secure Authentication
+- Create Notices
+- Delete Own Notices
+- Profile Page
+- Avatar Upload
+- Realtime Notice Updates
+- Notification System
+
+---
+
+# Project Structure
+
+```
+src
+│
+├── components
+│   ├── AvatarUpload.jsx
+│   ├── Navbar.jsx
+│   ├── NoticeCard.jsx
+│   ├── NoticeForm.jsx
+│   └── NotificationBell.jsx
+│
+├── context
+│   └── AuthContext.jsx
+│
+├── hooks
+│   ├── useNotices.js
+│   ├── useNotifications.js
+│   └── useRealtimeNotices.js
+│
+├── pages
+│   ├── Dashboard.jsx
+│   ├── Login.jsx
+│   ├── Profile.jsx
+│   └── Signup.jsx
+│
+├── utils
+│
+├── supabaseClient.js
+│
+└── App.jsx
+```
+
+---
+
+# Troubleshooting
+
+## White Screen
+
+Open Developer Tools
+
+```
+F12
+```
+
+Go to:
+
+```
+Console
+```
+
+If you see
+
+```
+supabaseUrl is required
+```
+
+then your `.env` file is missing or incorrectly configured.
+
+Make sure it contains:
+
+```env
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+Restart the development server afterwards.
+
+---
+
+## npm ERR! Could not read package.json
+
+You are not inside the project folder.
+
+Run:
+
+```bash
+cd CampusBoard
+```
+
+Then:
+
+```bash
+npm install
+```
+
+---
+
+## 404 when Posting Notices
+
+This usually means the SQL schema has not been executed.
+
+Run the SQL script in the Supabase SQL Editor.
+
+Verify that the following tables exist:
+
+- profiles
+- notices
+- notifications
+
+---
+
+## Notices are Saved but Not Visible
+
+Check:
+
+- SQL script executed successfully
+- notices table exists
+- Realtime is configured (if using realtime)
+- Browser Console for errors
+- Browser Network tab
+
+If the POST request returns
+
+```
+201 Created
+```
+
+then the notice has been inserted successfully.
+
+---
+
+# Important
+
+This repository does **NOT** include the `.env` file.
+
+Each user must create their own Supabase project and configure their own:
+
+- Project URL
+- Publishable Key
+
+Do not commit your `.env` file to GitHub.
+
+---
+
+# Technologies Used
+
+- React
+- Vite
+- Supabase
+- JavaScript
+- CSS
+
+---
+
+# License
+
+This project is intended for educational purposes.
