@@ -321,7 +321,9 @@ Every user should:
 Do **not** upload your `.env` file to GitHub.
 
 ---
+Deployment link-https://campusboard-ftznqe9gy-rival68947.vercel.app/login
 
 # License
 
 This project is intended for educational purposes.
+
