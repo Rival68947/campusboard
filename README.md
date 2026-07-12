@@ -6,8 +6,8 @@ This project demonstrates:
 
 - User Authentication
 - Profile Management
-- Notice Board CRUD
-- Realtime Updates
+- Notice Board CRUD Operations
+- Realtime Notice Updates
 - Notifications
 - Supabase Database Integration
 - Supabase Storage
@@ -21,20 +21,20 @@ Before running this project, make sure you have:
 - Node.js (v18 or later recommended)
 - npm
 - Git
-- A Supabase account
+- A Supabase Account
 
 ---
 
 # Installation
 
-## Clone the repository
+## Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY.git
+git clone https://github.com/Rival68947/campusboard.git
 cd CampusBoard
 ```
 
-## Install dependencies
+## Install Dependencies
 
 ```bash
 npm install
@@ -46,70 +46,68 @@ npm install
 
 ## Step 1 - Create a Supabase Project
 
-Go to:
-
-https://supabase.com
-
-Create a new project.
-
-Wait until the database finishes provisioning.
+1. Go to https://supabase.com
+2. Sign in.
+3. Click **New Project**.
+4. Choose your organization.
+5. Enter a project name.
+6. Set a database password.
+7. Choose a region.
+8. Wait for the project to finish provisioning.
 
 ---
 
 ## Step 2 - Get API Credentials
+
+Open your Supabase project.
 
 Copy:
 
 - Project URL
 - Publishable Key
 
-(In older Supabase tutorials this may be called the Anon Key.)
+> **Note:** Older tutorials may call this the **Anon Key**. In the current Supabase UI, use the **Publishable Key**.
 
 ---
 
-## Step 3 - Create a .env File
+## Step 3 - Create the Environment File
 
-Create a file named
+Create a file named:
 
 ```
 .env
 ```
 
-in the project root.
+inside the project root (same folder as `package.json`).
 
 Add:
 
 ```env
-VITE_SUPABASE_URL=YOUR_PROJECT_URL
-VITE_SUPABASE_ANON_KEY=YOUR_PUBLISHABLE_KEY
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_publishable_key
 ```
 
 Example:
 
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_URL=https://xxxxxxxxxxxxxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-Restart the development server after creating the `.env` file.
+After creating the `.env` file, restart the development server.
 
 ---
 
 # Database Setup
 
-Open:
+1. Open Supabase.
+2. Go to **SQL Editor**.
+3. Click **New Query**.
+4. Copy the SQL provided below (or included later in this README).
+5. Paste it into the editor.
+6. Click **Run**.
 
-Supabase Dashboard
-
-→ SQL Editor
-
-→ New Query
-
-Copy the SQL provided below (or in this README if included).
-
-Run the complete SQL script.
-
-After running successfully, the following tables should exist:
+After running successfully, you should see the following tables:
 
 - profiles
 - notices
@@ -121,29 +119,25 @@ After running successfully, the following tables should exist:
 
 If avatar uploads are required:
 
-Go to:
-
-Storage
-
-Create a bucket named:
+1. Open **Storage**.
+2. Create a bucket named:
 
 ```
 avatars
 ```
 
-Make it Public.
-
-Run the Storage Policies provided below.
+3. Make it **Public**.
+4. Apply the Storage Policies from the SQL/README if provided.
 
 ---
 
-# Start the Project
+# Run the Project
 
 ```bash
 npm run dev
 ```
 
-Open
+Open:
 
 ```
 http://localhost:5173
@@ -153,11 +147,12 @@ http://localhost:5173
 
 # Features
 
-- User Signup/Login
+- User Signup
+- User Login
 - Secure Authentication
 - Create Notices
 - Delete Own Notices
-- Profile Page
+- Profile Management
 - Avatar Upload
 - Realtime Notice Updates
 - Notification System
@@ -201,40 +196,34 @@ src
 
 # Troubleshooting
 
-## White Screen
+## 1. White Screen
 
-Open Developer Tools
+Press:
 
 ```
 F12
 ```
 
-Go to:
+Open the **Console**.
 
-```
-Console
-```
-
-If you see
+If you see:
 
 ```
 supabaseUrl is required
 ```
 
-then your `.env` file is missing or incorrectly configured.
+Make sure:
 
-Make sure it contains:
+- `.env` exists.
+- `.env` is in the project root.
+- `VITE_SUPABASE_URL` is correct.
+- `VITE_SUPABASE_ANON_KEY` contains your Publishable Key.
 
-```env
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_ANON_KEY=...
-```
-
-Restart the development server afterwards.
+Restart the dev server afterwards.
 
 ---
 
-## npm ERR! Could not read package.json
+## 2. npm ERR! Could not read package.json
 
 You are not inside the project folder.
 
@@ -252,13 +241,13 @@ npm install
 
 ---
 
-## 404 when Posting Notices
+## 3. 404 Error When Posting Notices
 
-This usually means the SQL schema has not been executed.
+This usually means the database tables were not created.
 
-Run the SQL script in the Supabase SQL Editor.
+Run the SQL script in Supabase SQL Editor.
 
-Verify that the following tables exist:
+Verify that these tables exist:
 
 - profiles
 - notices
@@ -266,36 +255,46 @@ Verify that the following tables exist:
 
 ---
 
-## Notices are Saved but Not Visible
+## 4. Notices Not Appearing
 
-Check:
+Open:
 
-- SQL script executed successfully
-- notices table exists
-- Realtime is configured (if using realtime)
-- Browser Console for errors
-- Browser Network tab
+```
+F12
+→ Network
+```
 
-If the POST request returns
+Check the request to:
+
+```
+/rest/v1/notices
+```
+
+If the response is:
 
 ```
 201 Created
 ```
 
-then the notice has been inserted successfully.
+the notice was inserted successfully.
+
+Then verify:
+
+- SQL script executed successfully.
+- `notices` table exists.
+- Realtime is configured (if required).
+- Browser Console has no errors.
 
 ---
 
-# Important
+## 5. Authentication Doesn't Work
 
-This repository does **NOT** include the `.env` file.
+Verify that:
 
-Each user must create their own Supabase project and configure their own:
-
-- Project URL
-- Publishable Key
-
-Do not commit your `.env` file to GitHub.
+- `.env` contains the correct Project URL.
+- `.env` contains the correct Publishable Key.
+- Supabase Authentication is enabled.
+- The project was restarted after editing `.env`.
 
 ---
 
@@ -306,6 +305,20 @@ Do not commit your `.env` file to GitHub.
 - Supabase
 - JavaScript
 - CSS
+
+---
+
+# Important
+
+This repository **does not include** the `.env` file.
+
+Every user should:
+
+- Create their own Supabase project.
+- Use their own Project URL.
+- Use their own Publishable Key.
+
+Do **not** upload your `.env` file to GitHub.
 
 ---
 
